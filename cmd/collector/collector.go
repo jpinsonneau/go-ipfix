@@ -42,7 +42,7 @@ var (
 	IPFIXAddr      string
 	IPFIXPort      uint16
 	IPFIXTransport string
-	CustomRegistry uint32
+	EnterpriseID   uint32
 )
 
 func initLoggingToFile(fs *pflag.FlagSet) {
@@ -59,7 +59,7 @@ func addIPFIXFlags(fs *pflag.FlagSet) {
 	fs.StringVar(&IPFIXAddr, "ipfix.addr", "0.0.0.0", "IPFIX collector address")
 	fs.Uint16Var(&IPFIXPort, "ipfix.port", 4739, "IPFIX collector port")
 	fs.StringVar(&IPFIXTransport, "ipfix.transport", "tcp", "IPFIX collector transport layer")
-	fs.Uint32Var(&CustomRegistry, "customRegistry", 0, "CustomRegistry")
+	fs.Uint32Var(&EnterpriseID, "customRegistry", 0, "EnterpriseID to add as custom registry")
 }
 
 func printIPFIXMessage(msg *entities.Message) {
@@ -152,11 +152,37 @@ func run() error {
 	// Load the IPFIX global registry
 	registry.LoadRegistry()
 	// Load custom Registry
-	if CustomRegistry > 0 {
-		klog.Infof("Registering custom EnterpriseID: %v", CustomRegistry)
-		registry.InitNewRegistry(CustomRegistry)
-		klog.Infof("Loading IANA Registry for EnterpriseID: %v", CustomRegistry)
-		registry.LoadIANARegistry(CustomRegistry)
+	if EnterpriseID > 0 {
+		klog.Infof("Registering custom EnterpriseID: %v", EnterpriseID)
+		registry.InitNewRegistry(EnterpriseID)
+		klog.Infof("Loading IANA Registry for EnterpriseID: %v", EnterpriseID)
+		registry.LoadIANARegistry(EnterpriseID)
+		klog.Infof("Injecting custom info for EnterpriseID: %v", EnterpriseID)
+		err := registry.PutInfoElement((*entities.NewInfoElement("sourcePodNamespace", 7733, 13, EnterpriseID, 65535)), EnterpriseID)
+		if err != nil {
+			klog.Errorf("Failed to register element %v", err)
+			return err
+		}
+		err = registry.PutInfoElement((*entities.NewInfoElement("sourcePodName", 7734, 13, EnterpriseID, 65535)), EnterpriseID)
+		if err != nil {
+			klog.Errorf("Failed to register element %v", err)
+			return err
+		}
+		err = registry.PutInfoElement((*entities.NewInfoElement("destinationPodNamespace", 7735, 13, EnterpriseID, 65535)), EnterpriseID)
+		if err != nil {
+			klog.Errorf("Failed to register element %v", err)
+			return err
+		}
+		err = registry.PutInfoElement((*entities.NewInfoElement("destinationPodName", 7736, 13, EnterpriseID, 65535)), EnterpriseID)
+		if err != nil {
+			klog.Errorf("Failed to register element %v", err)
+			return err
+		}
+		err = registry.PutInfoElement((*entities.NewInfoElement("sourceNodeName", 7737, 13, EnterpriseID, 65535)), EnterpriseID)
+		if err != nil {
+			klog.Errorf("Failed to register element %v", err)
+			return err
+		}
 	}
 	// Initialize collecting process
 	cpInput := collector.CollectorInput{
