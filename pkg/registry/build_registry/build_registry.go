@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//go:build ignore
 // +build ignore
 
 package main
@@ -64,7 +65,7 @@ import (
 
 // AUTO GENERATED, DO NOT CHANGE
 
-func loadIANARegistry() {
+func LoadIANARegistry(enterpriseID uint32)	{
 `)
 
 	for idx, row := range data {
@@ -74,10 +75,10 @@ func loadIANARegistry() {
 		}
 
 		writer.WriteString("	registerInfoElement(*entities.NewInfoElement(")
-		parameters := generateIEString(row[1], row[0], row[2], "0")
+		parameters := generateIEString(row[1], row[0], row[2], "enterpriseID")
 		fmt.Fprintf(writer, parameters)
 		writer.WriteString("), ")
-		fmt.Fprintf(writer, fmt.Sprint(registry.IANAEnterpriseID))
+		fmt.Fprintf(writer, "enterpriseID")
 		writer.WriteString(")\n")
 	}
 	writer.WriteString("}\n")
@@ -165,10 +166,14 @@ func readCSVFromFile(name string) ([][]string, error) {
 
 func generateIEString(name string, elementid string, datatype string, enterpriseid string) string {
 	elementID, _ := strconv.ParseUint(elementid, 10, 16)
-	enterpriseID, _ := strconv.ParseUint(enterpriseid, 10, 16)
+	enterpriseID, err := strconv.ParseUint(enterpriseid, 10, 16)
 	dataType := entities.IENameToType(datatype)
 	length := entities.InfoElementLength[dataType]
-	return fmt.Sprintf("\"%s\", %d, %v, %d, %d", name, uint16(elementID), dataType, uint16(enterpriseID), length)
+	if err == nil {
+		return fmt.Sprintf("\"%s\", %d, %v, %d, %d", name, uint16(elementID), dataType, uint16(enterpriseID), length)
+	} else {
+		return fmt.Sprintf("\"%s\", %d, %v, %s, %d", name, uint16(elementID), dataType, enterpriseid, length)
+	}
 }
 
 func main() {

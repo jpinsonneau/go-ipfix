@@ -42,6 +42,7 @@ var (
 	IPFIXAddr      string
 	IPFIXPort      uint16
 	IPFIXTransport string
+	CustomRegistry uint32
 )
 
 func initLoggingToFile(fs *pflag.FlagSet) {
@@ -58,6 +59,7 @@ func addIPFIXFlags(fs *pflag.FlagSet) {
 	fs.StringVar(&IPFIXAddr, "ipfix.addr", "0.0.0.0", "IPFIX collector address")
 	fs.Uint16Var(&IPFIXPort, "ipfix.port", 4739, "IPFIX collector port")
 	fs.StringVar(&IPFIXTransport, "ipfix.transport", "tcp", "IPFIX collector transport layer")
+	fs.Uint32Var(&CustomRegistry, "customRegistry", 0, "CustomRegistry")
 }
 
 func printIPFIXMessage(msg *entities.Message) {
@@ -149,6 +151,13 @@ func run() error {
 	klog.Info("Starting IPFIX collector")
 	// Load the IPFIX global registry
 	registry.LoadRegistry()
+	// Load custom Registry
+	if CustomRegistry > 0 {
+		klog.Infof("Registering custom EnterpriseID: %v", CustomRegistry)
+		registry.InitNewRegistry(CustomRegistry)
+		klog.Infof("Loading IANA Registry for EnterpriseID: %v", CustomRegistry)
+		registry.LoadIANARegistry(CustomRegistry)
+	}
 	// Initialize collecting process
 	cpInput := collector.CollectorInput{
 		Address:       IPFIXAddr + ":" + strconv.Itoa(int(IPFIXPort)),

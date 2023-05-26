@@ -104,7 +104,7 @@ func LoadRegistry() {
 	globalRegistryByName[IANAEnterpriseID] = make(map[string]*entities.InfoElement)
 	globalRegistryByName[IANAReversedEnterpriseID] = make(map[string]*entities.InfoElement)
 
-	loadIANARegistry()
+	LoadIANARegistry(IANAEnterpriseID)
 	loadAntreaRegistry()
 }
 
