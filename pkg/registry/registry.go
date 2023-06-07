@@ -19,6 +19,7 @@ import (
 	"strings"
 
 	"github.com/vmware/go-ipfix/pkg/entities"
+	"k8s.io/klog/v2"
 )
 
 const (
@@ -83,6 +84,8 @@ func InitNewRegistry(customEnterpriseID uint32) error {
 }
 
 func PutInfoElement(ie entities.InfoElement, enterpriseID uint32) error {
+	klog.Infof("PutInfoElement %s: %d", ie.Name, ie.ElementId)
+
 	if _, exist := globalRegistryByName[enterpriseID]; !exist {
 		return fmt.Errorf("Registry with EnterpriseID %d is not Initialized, Please use InitNewRegistry", ie.EnterpriseId)
 	} else if _, exist = globalRegistryByName[enterpriseID][ie.Name]; exist {

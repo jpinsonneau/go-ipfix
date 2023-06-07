@@ -158,6 +158,7 @@ func run() error {
 		klog.Infof("Loading IANA Registry for EnterpriseID: %v", EnterpriseID)
 		registry.LoadIANARegistry(EnterpriseID)
 		klog.Infof("Injecting custom info for EnterpriseID: %v", EnterpriseID)
+
 		err := registry.PutInfoElement((*entities.NewInfoElement("sourcePodNamespace", 7733, 13, EnterpriseID, 65535)), EnterpriseID)
 		if err != nil {
 			klog.Errorf("Failed to register element %v", err)
@@ -179,6 +180,11 @@ func run() error {
 			return err
 		}
 		err = registry.PutInfoElement((*entities.NewInfoElement("sourceNodeName", 7737, 13, EnterpriseID, 65535)), EnterpriseID)
+		if err != nil {
+			klog.Errorf("Failed to register element %v", err)
+			return err
+		}
+		err = registry.PutInfoElement((*entities.NewInfoElement("destinationNodeName", 7738, 13, EnterpriseID, 65535)), EnterpriseID)
 		if err != nil {
 			klog.Errorf("Failed to register element %v", err)
 			return err
